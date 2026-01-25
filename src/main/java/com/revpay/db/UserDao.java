@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 public class UserDao {
 
@@ -69,5 +70,25 @@ public class UserDao {
             return user;
         }
     }
+
+    public void updateFailedAttempts(long userId, int attempts, LocalDateTime lockedUntil) throws Exception {
+
+        String sql = """
+        UPDATE users
+        SET failed_attempts = ?, locked_until = ?
+        WHERE id = ?
+    """;
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, attempts);
+            ps.setTimestamp(2, lockedUntil == null ? null : Timestamp.valueOf(lockedUntil));
+            ps.setLong(3, userId);
+
+            ps.executeUpdate();
+        }
+    }
+
 
 }
