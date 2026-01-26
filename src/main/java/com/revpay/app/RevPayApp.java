@@ -9,6 +9,7 @@ public class RevPayApp {
 
     private static final UserService userService = new UserService();
     private static final AuthService authService = new AuthService();
+    private static User loggedInUser = null;
 
     public static void main(String[] args) {
 
@@ -64,10 +65,45 @@ public class RevPayApp {
             String pin = InputUtil.readLine("Enter PIN: ");
             authService.verifyPin(user.getId(), pin);
 
+            loggedInUser = user;
+
             System.out.println("Access granted.");
             System.out.println("Welcome "+user.getFullName());
+
+            showUserMenu();
         } catch (Exception e) {
             System.out.println("Login failed: "+e.getMessage());
         }
     }
+
+    private static void showUserMenu() {
+
+        while (true) {
+            System.out.println("\n==== User Menu ====");
+            System.out.println("1. View Profile");
+            System.out.println("2. Logout");
+
+            int choice = InputUtil.readInt("Enter choice: ");
+
+            switch (choice) {
+                case 1 -> handleViewProfile();
+                case 2 -> {
+                    loggedInUser = null;
+                    System.out.println("Logged out.");
+                    return;
+                }
+                default -> System.out.println("Invalid choice.");
+            }
+        }
+    }
+
+    private static void handleViewProfile() {
+
+        System.out.println("\n---- Profile ----");
+        System.out.println("Name: " + loggedInUser.getFullName());
+        System.out.println("Email: " + loggedInUser.getEmail());
+        System.out.println("Phone: " + loggedInUser.getPhone());
+        System.out.println("Type: " + loggedInUser.getUserType());
+    }
+
 }
