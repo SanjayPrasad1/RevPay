@@ -2,25 +2,19 @@ package com.revpay.db;
 
 import com.revpay.model.User;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.time.LocalDateTime;
 
 public class UserDao {
 
-    public void save(User user) throws Exception {
-
+    public long save(User user, Connection con) throws Exception {
         String sql = """
-            INSERT INTO users
-            (full_name, email, phone, password_hash, pin_hash, user_type, failed_attempts, locked_until, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """;
+        INSERT INTO users (full_name, email, phone, password_hash, pin_hash,
+                           user_type, failed_attempts, locked_until, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """;
 
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-
+        try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, user.getFullName());
             ps.setString(2, user.getEmail());
             ps.setString(3, user.getPhone());
@@ -28,12 +22,21 @@ public class UserDao {
             ps.setString(5, user.getPinHash());
             ps.setString(6, user.getUserType());
             ps.setInt(7, user.getFailedAttempts());
-            ps.setTimestamp(8, user.getLockedUntil() == null ? null : Timestamp.valueOf(user.getLockedUntil()));
+            ps.setTimestamp(8, null);
             ps.setTimestamp(9, Timestamp.valueOf(user.getCreatedAt()));
 
             ps.executeUpdate();
+
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    return rs.getLong(1);
+                } else {
+                    throw new SQLException("Failed to get generated user ID");
+                }
+            }
         }
     }
+
     public User findByEmailOrPhone(String input) throws Exception {
 
         String sql = """

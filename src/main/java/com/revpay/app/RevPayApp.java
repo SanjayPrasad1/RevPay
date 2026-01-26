@@ -1,8 +1,10 @@
 package com.revpay.app;
 
 import com.revpay.model.User;
+import com.revpay.model.Wallet;
 import com.revpay.service.AuthService;
 import com.revpay.service.UserService;
+import com.revpay.service.WalletService;
 import com.revpay.util.InputUtil;
 
 public class RevPayApp {
@@ -10,6 +12,8 @@ public class RevPayApp {
     private static final UserService userService = new UserService();
     private static final AuthService authService = new AuthService();
     private static User loggedInUser = null;
+    private static final WalletService walletService = new WalletService();
+
 
     public static void main(String[] args) {
 
@@ -81,13 +85,15 @@ public class RevPayApp {
         while (true) {
             System.out.println("\n==== User Menu ====");
             System.out.println("1. View Profile");
-            System.out.println("2. Logout");
+            System.out.println("2. View Balance");
+            System.out.println("3. Logout");
 
             int choice = InputUtil.readInt("Enter choice: ");
 
             switch (choice) {
                 case 1 -> handleViewProfile();
-                case 2 -> {
+                case 2 -> handleViewBalance();
+                case 3 -> {
                     loggedInUser = null;
                     System.out.println("Logged out.");
                     return;
@@ -105,5 +111,17 @@ public class RevPayApp {
         System.out.println("Phone: " + loggedInUser.getPhone());
         System.out.println("Type: " + loggedInUser.getUserType());
     }
+
+    private static void handleViewBalance() {
+
+        try {
+            Wallet wallet = walletService.getWallet(loggedInUser.getId());
+            System.out.println("\n---- Wallet ----");
+            System.out.println("Balance: " + wallet.getBalance());
+        } catch (Exception e) {
+            System.out.println("Failed to load wallet.");
+        }
+    }
+
 
 }
