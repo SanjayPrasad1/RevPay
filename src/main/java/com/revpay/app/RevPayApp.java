@@ -59,7 +59,10 @@ public class RevPayApp {
 
         try {
             User user = authService.login(input, password);
-            System.out.println("Welcome "+user.getFullName());
+            System.out.println("Password verified");
+
+            String pin = InputUtil.readLine("Enter PIN: ");
+            System.out.println("Access granted.");
         } catch (Exception e) {
             System.out.println("Login failed: "+e.getMessage());
         }

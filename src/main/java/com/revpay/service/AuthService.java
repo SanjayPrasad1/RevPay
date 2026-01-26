@@ -43,4 +43,19 @@ public class AuthService {
 
         return user;
     }
+    public void verifyPin(long userId, String pin) throws Exception {
+
+        User user = userDao.findById(userId);
+
+        if (user == null) {
+            throw new RuntimeException("User not found.");
+        }
+
+        String hashedPin = PasswordUtil.hash(pin);
+
+        if (!hashedPin.equals(user.getPinHash())) {
+            throw new RuntimeException("Invalid PIN.");
+        }
+    }
+
 }

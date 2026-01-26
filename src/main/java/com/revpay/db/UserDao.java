@@ -90,5 +90,42 @@ public class UserDao {
         }
     }
 
+    public User findById(long id) throws Exception {
+
+        String sql = """
+        SELECT id, full_name, email, phone, password_hash, pin_hash,
+               user_type, failed_attempts, locked_until, created_at
+        FROM users
+        WHERE id = ?
+    """;
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setLong(1, id);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (!rs.next()) return null;
+
+            User user = new User();
+            user.setId(rs.getLong("id"));
+            user.setFullName(rs.getString("full_name"));
+            user.setEmail(rs.getString("email"));
+            user.setPhone(rs.getString("phone"));
+            user.setPasswordHash(rs.getString("password_hash"));
+            user.setPinHash(rs.getString("pin_hash"));
+            user.setUserType(rs.getString("user_type"));
+            user.setFailedAttempts(rs.getInt("failed_attempts"));
+            user.setLockedUntil(rs.getTimestamp("locked_until") == null
+                    ? null
+                    : rs.getTimestamp("locked_until").toLocalDateTime());
+            user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+
+            return user;
+        }
+    }
+
+
 
 }
