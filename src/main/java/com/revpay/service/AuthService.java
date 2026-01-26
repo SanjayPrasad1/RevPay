@@ -51,11 +51,34 @@ public class AuthService {
             throw new RuntimeException("User not found.");
         }
 
+//        System.out.println("DEBUG stored pin hash = " + user.getPinHash());
+//        System.out.println("DEBUG input pin hash = " + PasswordUtil.hash(pin));
+
+        if (user.getPinLockedUntil() != null &&
+                user.getPinLockedUntil().isAfter(LocalDateTime.now())) {
+
+            throw new RuntimeException("PIN locked. Try again later.");
+        }
+
         String hashedPin = PasswordUtil.hash(pin);
 
         if (!hashedPin.equals(user.getPinHash())) {
+
+            int newAttempts = user.getPinFailedAttempts() + 1;
+            LocalDateTime lockUntil = null;
+
+            if (newAttempts >= 3) {
+                lockUntil = LocalDateTime.now().plusMinutes(1);
+                newAttempts = 0;
+            }
+
+            userDao.updatePinFailedAttempts(user.getId(), newAttempts, lockUntil);
+
             throw new RuntimeException("Invalid PIN.");
         }
+
+        // successful PIN → reset
+        userDao.updatePinFailedAttempts(user.getId(), 0, null);
     }
 
 }

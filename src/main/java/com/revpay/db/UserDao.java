@@ -38,7 +38,8 @@ public class UserDao {
 
         String sql = """
         SELECT id, full_name, email, phone, password_hash, pin_hash,
-               user_type, failed_attempts, locked_until, created_at
+               user_type, failed_attempts, locked_until, 
+               pin_failed_attempts, pin_locked_until, created_at
         FROM users
         WHERE email = ? OR phone = ?
     """;
@@ -66,6 +67,12 @@ public class UserDao {
                     ? null
                     : rs.getTimestamp("locked_until").toLocalDateTime());
             user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+            user.setPinFailedAttempts(rs.getInt("pin_failed_attempts"));
+            user.setPinLockedUntil(
+                    rs.getTimestamp("pin_locked_until")==null
+                    ? null
+                    : rs.getTimestamp("pin_locked_until").toLocalDateTime()
+            );
 
             return user;
         }
@@ -94,7 +101,8 @@ public class UserDao {
 
         String sql = """
         SELECT id, full_name, email, phone, password_hash, pin_hash,
-               user_type, failed_attempts, locked_until, created_at
+               user_type, failed_attempts, locked_until, 
+               pin_failed_attempts, pin_locked_until, created_at
         FROM users
         WHERE id = ?
     """;
@@ -121,10 +129,36 @@ public class UserDao {
                     ? null
                     : rs.getTimestamp("locked_until").toLocalDateTime());
             user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+            user.setPinFailedAttempts(rs.getInt("pin_failed_attempts"));
+            user.setPinLockedUntil(
+                    rs.getTimestamp("pin_locked_until")==null
+                            ? null
+                            : rs.getTimestamp("pin_locked_until").toLocalDateTime()
+            );
 
             return user;
         }
     }
+
+    public void updatePinFailedAttempts(long userId, int attempts, LocalDateTime lockedUntil) throws Exception {
+
+        String sql = """
+        UPDATE users
+        SET pin_failed_attempts = ?, pin_locked_until = ?
+        WHERE id = ?
+    """;
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, attempts);
+            ps.setTimestamp(2, lockedUntil == null ? null : Timestamp.valueOf(lockedUntil));
+            ps.setLong(3, userId);
+
+            ps.executeUpdate();
+        }
+    }
+
 
 
 

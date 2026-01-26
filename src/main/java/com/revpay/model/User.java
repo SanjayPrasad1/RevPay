@@ -15,6 +15,24 @@ public class User {
     private int failedAttempts;
     private LocalDateTime lockedUntil;
     private LocalDateTime createdAt;
+    private int pinFailedAttempts;
+    private LocalDateTime pinLockedUntil;
+
+    public int getPinFailedAttempts() {
+        return pinFailedAttempts;
+    }
+
+    public void setPinFailedAttempts(int pinFailedAttempts) {
+        this.pinFailedAttempts = pinFailedAttempts;
+    }
+
+    public LocalDateTime getPinLockedUntil() {
+        return pinLockedUntil;
+    }
+
+    public void setPinLockedUntil(LocalDateTime pinLockedUntil) {
+        this.pinLockedUntil = pinLockedUntil;
+    }
 
     public int getFailedAttempts() {
         return failedAttempts;
