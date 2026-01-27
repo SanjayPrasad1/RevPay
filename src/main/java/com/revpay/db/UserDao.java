@@ -37,7 +37,7 @@ public class UserDao {
         }
     }
 
-    public User findByEmailOrPhone(String input) throws Exception {
+    public User findByEmailOrPhone(String input, Connection con) throws Exception {
 
         String sql = """
         SELECT id, full_name, email, phone, password_hash, pin_hash,
@@ -47,8 +47,7 @@ public class UserDao {
         WHERE email = ? OR phone = ?
     """;
 
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, input);
             ps.setString(2, input);
@@ -100,7 +99,7 @@ public class UserDao {
         }
     }
 
-    public User findById(long id) throws Exception {
+    public User findById(long id, Connection con) throws Exception {
 
         String sql = """
         SELECT id, full_name, email, phone, password_hash, pin_hash,
@@ -110,8 +109,7 @@ public class UserDao {
         WHERE id = ?
     """;
 
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setLong(1, id);
 
@@ -161,8 +159,16 @@ public class UserDao {
             ps.executeUpdate();
         }
     }
+    public User findById(long id) throws Exception {
+       try(Connection con = DBConnection.getConnection()) {
+           return findById(id,con);
+       }
+    }
 
-
-
+    public User findByEmailOrPhone(String value) throws Exception {
+       try(Connection con = DBConnection.getConnection()) {
+           return findByEmailOrPhone(value,con);
+       }
+    }
 
 }

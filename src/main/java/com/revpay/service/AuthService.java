@@ -17,6 +17,7 @@ public class AuthService {
 
     public User login(String emailOrPhone, String password) throws Exception {
 
+
         User user = userDao.findByEmailOrPhone(emailOrPhone);
 
         if (user == null) {
@@ -93,7 +94,6 @@ public class AuthService {
                 walletDao.createForUser(user.getId(), con);
                 System.out.println("Wallet auto-created for user: "+user.getId());
             }
-
         }
     }
 

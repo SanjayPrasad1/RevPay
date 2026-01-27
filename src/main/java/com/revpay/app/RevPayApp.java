@@ -4,10 +4,12 @@ import com.revpay.db.DBConnection;
 import com.revpay.model.User;
 import com.revpay.model.Wallet;
 import com.revpay.service.AuthService;
+import com.revpay.service.MoneyTransferService;
 import com.revpay.service.UserService;
 import com.revpay.service.WalletService;
 import com.revpay.util.InputUtil;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 
 public class RevPayApp {
@@ -89,14 +91,16 @@ public class RevPayApp {
             System.out.println("\n==== User Menu ====");
             System.out.println("1. View Profile");
             System.out.println("2. View Balance");
-            System.out.println("3. Logout");
+            System.out.println("3. Send Money");
+            System.out.println("4. Logout");
 
             int choice = InputUtil.readInt("Enter choice: ");
 
             switch (choice) {
                 case 1 -> handleViewProfile();
                 case 2 -> handleViewBalance();
-                case 3 -> {
+                case 3 -> handleSendMoney();
+                case 4 -> {
                     loggedInUser = null;
                     System.out.println("Logged out.");
                     return;
@@ -125,5 +129,22 @@ public class RevPayApp {
             System.out.println("Failed to load wallet.");
         }
     }
+    private static void handleSendMoney() {
+
+        System.out.println("\n---- Send Money ----");
+
+        String to = InputUtil.readLine("Send to (email / phone / userId): ");
+        BigDecimal amount = InputUtil.readBigDecimal("Amount: ");
+        String note = InputUtil.readLine("Note (optional): ");
+
+        try {
+            MoneyTransferService mts = new MoneyTransferService();
+            mts.transferMoney(loggedInUser.getId(), to, amount, note);
+            System.out.println("Transfer successful.");
+        } catch (Exception e) {
+            System.out.println("Transfer failed: " + e.getMessage());
+        }
+    }
+
 
 }

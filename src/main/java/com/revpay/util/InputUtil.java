@@ -1,5 +1,6 @@
 package com.revpay.util;
 
+import java.math.BigDecimal;
 import java.util.Scanner;
 
 public class InputUtil {
@@ -18,6 +19,21 @@ public class InputUtil {
                 return Integer.parseInt(scanner.nextLine().trim());
             } catch (Exception e) {
                 System.out.println("Invalid number. Try again.");
+            }
+        }
+    }
+    public static BigDecimal readBigDecimal(String prompt){
+        while (true){
+            try {
+                String input = readLine(prompt);
+                BigDecimal value = new BigDecimal(input);
+                if (value.compareTo(BigDecimal.ZERO)<0){
+                    System.out.println("Value cannot be negative. Try again.");
+                    continue;
+                }
+                return value;
+            }catch (NumberFormatException e){
+                System.out.println("Invalid decimal number. Try again.");
             }
         }
     }

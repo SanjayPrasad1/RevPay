@@ -52,4 +52,40 @@ public class WalletDao {
             return wallet;
         }
     }
+    public Wallet findByUserIdForUpdate(long userId, Connection con) throws Exception {
+
+        String sql = """
+        SELECT id, user_id, balance, created_at
+        FROM wallets
+        WHERE user_id = ?
+        FOR UPDATE
+    """;
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, userId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) return null;
+
+                Wallet wallet = new Wallet();
+                wallet.setId(rs.getLong("id"));
+                wallet.setUserId(rs.getLong("user_id"));
+                wallet.setBalance(rs.getBigDecimal("balance"));
+                wallet.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+
+                return wallet;
+            }
+        }
+    }
+    public void updateBalance(long walletId, BigDecimal newBalance, Connection con) throws Exception {
+
+        String sql = "UPDATE wallets SET balance = ? WHERE id = ?";
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setBigDecimal(1, newBalance);
+            ps.setLong(2, walletId);
+            ps.executeUpdate();
+        }
+    }
+
 }
