@@ -27,7 +27,7 @@ public class WalletDao {
     }
 
 
-    public Wallet findByUserId(long userId) throws Exception {
+    public Wallet findByUserId(long userId, Connection con) throws Exception {
 
         String sql = """
             SELECT id, user_id, balance, created_at
@@ -35,8 +35,7 @@ public class WalletDao {
             WHERE user_id = ?
         """;
 
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setLong(1, userId);
 

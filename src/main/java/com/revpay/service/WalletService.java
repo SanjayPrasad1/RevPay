@@ -13,7 +13,7 @@ public class WalletService {
         walletDao.createForUser(userId, con);
     }
 
-    public Wallet getWallet(long userId) throws Exception {
-        return walletDao.findByUserId(userId);
+    public Wallet getWallet(long userId, Connection con) throws Exception {
+        return walletDao.findByUserId(userId,con);
     }
 }

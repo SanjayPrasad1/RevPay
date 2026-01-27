@@ -1,11 +1,14 @@
 package com.revpay.app;
 
+import com.revpay.db.DBConnection;
 import com.revpay.model.User;
 import com.revpay.model.Wallet;
 import com.revpay.service.AuthService;
 import com.revpay.service.UserService;
 import com.revpay.service.WalletService;
 import com.revpay.util.InputUtil;
+
+import java.sql.Connection;
 
 public class RevPayApp {
 
@@ -114,14 +117,13 @@ public class RevPayApp {
 
     private static void handleViewBalance() {
 
-        try {
-            Wallet wallet = walletService.getWallet(loggedInUser.getId());
+        try(Connection con = DBConnection.getConnection()) {
+            Wallet wallet = walletService.getWallet(loggedInUser.getId(),con);
             System.out.println("\n---- Wallet ----");
             System.out.println("Balance: " + wallet.getBalance());
         } catch (Exception e) {
             System.out.println("Failed to load wallet.");
         }
     }
-
 
 }

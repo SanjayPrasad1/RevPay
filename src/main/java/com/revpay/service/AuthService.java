@@ -1,14 +1,19 @@
 package com.revpay.service;
 
+import com.revpay.db.DBConnection;
 import com.revpay.db.UserDao;
+import com.revpay.db.WalletDao;
 import com.revpay.model.User;
+import com.revpay.model.Wallet;
 import com.revpay.util.PasswordUtil;
 
+import java.sql.Connection;
 import java.time.LocalDateTime;
 
 public class AuthService {
 
     private final UserDao userDao = new UserDao();
+    private final WalletDao walletDao = new WalletDao();
 
     public User login(String emailOrPhone, String password) throws Exception {
 
@@ -79,6 +84,17 @@ public class AuthService {
 
         // successful PIN → reset
         userDao.updatePinFailedAttempts(user.getId(), 0, null);
+
+        //wallet sanity - if wallet not present add it
+        try(Connection con = DBConnection.getConnection()){
+            Wallet wallet = walletDao.findByUserId(user.getId(), con);
+
+            if (wallet == null){
+                walletDao.createForUser(user.getId(), con);
+                System.out.println("Wallet auto-created for user: "+user.getId());
+            }
+
+        }
     }
 
 }
