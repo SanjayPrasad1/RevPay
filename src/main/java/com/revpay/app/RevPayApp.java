@@ -1,16 +1,15 @@
 package com.revpay.app;
 
 import com.revpay.db.DBConnection;
+import com.revpay.model.Transaction;
 import com.revpay.model.User;
 import com.revpay.model.Wallet;
-import com.revpay.service.AuthService;
-import com.revpay.service.MoneyTransferService;
-import com.revpay.service.UserService;
-import com.revpay.service.WalletService;
+import com.revpay.service.*;
 import com.revpay.util.InputUtil;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.util.List;
 
 public class RevPayApp {
 
@@ -92,7 +91,8 @@ public class RevPayApp {
             System.out.println("1. View Profile");
             System.out.println("2. View Balance");
             System.out.println("3. Send Money");
-            System.out.println("4. Logout");
+            System.out.println("4. View Transaction");
+            System.out.println("5. Logout");
 
             int choice = InputUtil.readInt("Enter choice: ");
 
@@ -100,7 +100,8 @@ public class RevPayApp {
                 case 1 -> handleViewProfile();
                 case 2 -> handleViewBalance();
                 case 3 -> handleSendMoney();
-                case 4 -> {
+                case 4 -> handleViewTransactions();
+                case 5 -> {
                     loggedInUser = null;
                     System.out.println("Logged out.");
                     return;
@@ -146,5 +147,38 @@ public class RevPayApp {
         }
     }
 
+    private static void handleViewTransactions() {
+
+        TransactionService ts = new TransactionService();
+
+        try {
+            List<Transaction> list =
+                    ts.getUserTransactions(loggedInUser.getId());
+
+            if (list.isEmpty()) {
+                System.out.println("No transactions found.");
+                return;
+            }
+
+            System.out.println("\n---- Transactions ----");
+
+            for (Transaction t : list) {
+                String direction =
+                        t.getSenderId() == loggedInUser.getId()
+                                ? "SENT"
+                                : "RECEIVED";
+
+                System.out.println(
+                        direction + " | " +
+                                t.getAmount() + " | " +
+                                t.getStatus() + " | " +
+                                t.getCreatedAt()
+                );
+            }
+
+        } catch (Exception e) {
+            System.out.println("Failed to load transactions.");
+        }
+    }
 
 }
