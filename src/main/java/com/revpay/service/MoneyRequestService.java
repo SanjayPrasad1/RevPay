@@ -2,7 +2,9 @@ package com.revpay.service;
 
 import com.revpay.db.DBConnection;
 import com.revpay.db.MoneyRequestDao;
+import com.revpay.db.UserDao;
 import com.revpay.model.MoneyRequest;
+import com.revpay.model.User;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -12,20 +14,29 @@ public class MoneyRequestService {
 
     private final MoneyRequestDao moneyRequestDao = new MoneyRequestDao();
     private final MoneyTransferService moneyTransferService = new MoneyTransferService();
+    private final UserDao userDao = new UserDao();
     public void requestMoney(long requesterId,
-                             long requesteeId,
+                             String toIdentifier,
                              BigDecimal amount) throws Exception {
-
-        if (requesterId == requesteeId) {
-            throw new RuntimeException("Cannot request money from yourself");
-        }
 
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new RuntimeException("Amount must be greater than zero");
         }
 
         try (Connection con = DBConnection.getConnection()) {
-            moneyRequestDao.createRequest(requesterId, requesteeId, amount, con);
+            User requestee;
+            if (toIdentifier.matches("\\d+")){
+                requestee = userDao.findById(Long.parseLong(toIdentifier), con);
+            }else {
+                requestee = userDao.findByEmailOrPhone(toIdentifier, con);
+            }
+            if (requestee==null){
+                throw new RuntimeException("User not found");
+            }
+            if (requesterId == requestee.getId()){
+                throw new RuntimeException("Cannot request money from yourself");
+            }
+            moneyRequestDao.createRequest(requesterId, requestee.getId(), amount, con);
         }
     }
 public void acceptRequest(long requestId, long requesteeId) throws Exception {

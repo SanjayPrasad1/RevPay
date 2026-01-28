@@ -147,8 +147,12 @@ public class RevPayApp {
         String note = InputUtil.readLine("Note (optional): ");
 
         try(Connection con = DBConnection.getConnection()) {
+            con.setAutoCommit(false);
+
             MoneyTransferService mts = new MoneyTransferService();
             mts.transferMoney(loggedInUser.getId(), to, amount, note, con);
+            con.commit();
+
             System.out.println("Transfer successful.");
         } catch (Exception e) {
             System.out.println("Transfer failed: " + e.getMessage());
@@ -192,13 +196,15 @@ public class RevPayApp {
     private static void handleRequestMoney() {
 
         try {
-            long requesteeId = InputUtil.readLong("Enter user id to request from: ");
+//            long requesteeId = InputUtil.readLong("Enter user id to request from: ");
+            String to = InputUtil.readLine("Request from (email / phone): ");
             BigDecimal amount = InputUtil.readBigDecimal("Enter amount: ");
 
             MoneyRequestService moneyRequestService = new MoneyRequestService();
             moneyRequestService.requestMoney(
                     loggedInUser.getId(),
-                    requesteeId,
+//                    requesteeId,
+                    to,
                     amount
             );
 

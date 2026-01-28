@@ -28,12 +28,6 @@ public class MoneyTransferService {
             throw new RuntimeException("Amount must be greater than zero.");
         }
 
-//        Connection con = null;
-//
-//        try {
-//            con = DBConnection.getConnection();
-//            con.setAutoCommit(false);
-
         // 1) Resolve receiver
         User receiver;
 
