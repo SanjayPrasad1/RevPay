@@ -1,10 +1,7 @@
 package com.revpay.app;
 
 import com.revpay.db.DBConnection;
-import com.revpay.model.MoneyRequest;
-import com.revpay.model.Transaction;
-import com.revpay.model.User;
-import com.revpay.model.Wallet;
+import com.revpay.model.*;
 import com.revpay.service.*;
 import com.revpay.util.InputUtil;
 
@@ -19,7 +16,7 @@ public class RevPayApp {
     private static User loggedInUser = null;
     private static final WalletService walletService = new WalletService();
     private static final MoneyRequestService moneyRequestService = new MoneyRequestService();
-
+    private static final CardService cardService = new CardService();
 
     public static void main(String[] args) {
 
@@ -97,7 +94,8 @@ public class RevPayApp {
             System.out.println("5. View Pending Requests");
             System.out.println("6. Accept Money Request");
             System.out.println("7. View Transaction");
-            System.out.println("8. Logout");
+            System.out.println("8. Manage Cards");
+            System.out.println("9. Logout");
 
             int choice = InputUtil.readInt("Enter choice: ");
 
@@ -109,7 +107,8 @@ public class RevPayApp {
                 case 5 -> handleViewPendingRequests();
                 case 6 -> handleAcceptRequest();
                 case 7 -> handleViewTransactions();
-                case 8 -> {
+                case 8 -> handleCardMenu();
+                case 9 -> {
                     loggedInUser = null;
                     System.out.println("Logged out.");
                     return;
@@ -256,5 +255,94 @@ public class RevPayApp {
             System.out.println("Failed to load requests: " + e.getMessage());
         }
     }
+
+    private static void handleCardMenu() {
+        CardService cardService = new CardService();
+
+        while (true) {
+            System.out.println("\n==== Card Management ====");
+            System.out.println("1. Add Card");
+            System.out.println("2. View Cards");
+            System.out.println("3. Set Default Card");
+            System.out.println("4. Back");
+
+            int choice = InputUtil.readInt("Enter choice: ");
+
+            try (Connection con = DBConnection.getConnection()) {
+                switch (choice) {
+                    case 1 -> handleAddCard(cardService, con);
+                    case 2 -> handleViewCards(cardService, con);
+                    case 3 -> handleSetDefaultCard(cardService, con);
+                    case 4 -> { return; }
+                    default -> System.out.println("Invalid choice.");
+                }
+            } catch (Exception e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+        }
+    }
+
+    private static void handleAddCard(CardService cardService, Connection con) throws Exception {
+        System.out.println("\n---- Add Card ----");
+        String holderName = InputUtil.readLine("Card Holder Name: ");
+        String number = InputUtil.readLine("Card Number: ");
+        String cvv = InputUtil.readLine("CVV: ");
+        int month = InputUtil.readInt("Expiry Month (1-12): ");
+        int year = InputUtil.readInt("Expiry Year (YYYY): ");
+        boolean setDefault = InputUtil.readLine("Set as default? (y/n): ").equalsIgnoreCase("y");
+
+        cardService.addCard(
+                loggedInUser.getId(),
+                holderName,
+                number,
+                cvv,
+                month,
+                year,
+                setDefault,
+                con
+        );
+
+        System.out.println("Card added successfully.");
+    }
+    private static void handleViewCards(CardService cardService, Connection con) throws Exception {
+        System.out.println("\n---- Your Cards ----");
+        var cards = cardService.getUserCards(loggedInUser.getId(), con);
+        if (cards.isEmpty()) {
+            System.out.println("No cards found.");
+            return;
+        }
+
+        for (var c : cards) {
+            System.out.println(
+                    "ID: " + c.getId() +
+                            " | Holder: " + c.getCardHolderName() +
+                            " | Expiry: " + c.getExpiryMonth() + "/" + c.getExpiryYear() +
+                            " | Default: " + (c.isDefault() ? "Yes" : "No")
+            );
+        }
+    }
+    private static void handleSetDefaultCard(CardService cardService, Connection con) throws Exception {
+        long cardId = InputUtil.readLong("Enter Card ID to set as default: ");
+
+        // fetch all cards and check ownership
+        var cards = cardService.getUserCards(loggedInUser.getId(), con);
+        boolean found = false;
+        for (var c : cards) {
+            if (c.getId() == cardId) {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            System.out.println("Card not found or not owned by you.");
+            return;
+        }
+
+        cardService.setDefaultCard(loggedInUser.getId(), cardId, con);
+        System.out.println("Card set as default.");
+    }
+
+
 
 }
