@@ -95,7 +95,8 @@ public class RevPayApp {
             System.out.println("6. Accept Money Request");
             System.out.println("7. View Transaction");
             System.out.println("8. Manage Cards");
-            System.out.println("9. Logout");
+            System.out.println("9. Add Money to Wallet");
+            System.out.println("10. Logout");
 
             int choice = InputUtil.readInt("Enter choice: ");
 
@@ -108,7 +109,8 @@ public class RevPayApp {
                 case 6 -> handleAcceptRequest();
                 case 7 -> handleViewTransactions();
                 case 8 -> handleCardMenu();
-                case 9 -> {
+                case 9 -> handleAddMoney();
+                case 10 -> {
                     loggedInUser = null;
                     System.out.println("Logged out.");
                     return;
@@ -343,6 +345,17 @@ public class RevPayApp {
         System.out.println("Card set as default.");
     }
 
+    private static void handleAddMoney() {
+        BigDecimal amount = InputUtil.readBigDecimal("Amount to add: ");
 
+        try (Connection con = DBConnection.getConnection()) {
+            con.setAutoCommit(false);
+            walletService.addMoneyFromCard(loggedInUser.getId(), amount, con);
+            con.commit();
+            System.out.println("Money added successfully");
+        } catch (Exception e) {
+            System.out.println("Failed: " + e.getMessage());
+        }
+    }
 
 }

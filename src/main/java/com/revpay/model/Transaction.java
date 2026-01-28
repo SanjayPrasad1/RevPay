@@ -6,8 +6,8 @@ import java.time.LocalDateTime;
 public class Transaction {
 
     private long id;
-    private long senderId;
-    private long receiverId;
+    private Long senderId;
+    private Long receiverId;
     private BigDecimal amount;
     private String type;
     private String status;
@@ -22,19 +22,19 @@ public class Transaction {
         this.id = id;
     }
 
-    public long getSenderId() {
+    public Long getSenderId() {
         return senderId;
     }
 
-    public void setSenderId(long senderId) {
+    public void setSenderId(Long senderId) {
         this.senderId = senderId;
     }
 
-    public long getReceiverId() {
+    public Long getReceiverId() {
         return receiverId;
     }
 
-    public void setReceiverId(long receiverId) {
+    public void setReceiverId(Long receiverId) {
         this.receiverId = receiverId;
     }
 

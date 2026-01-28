@@ -2,10 +2,7 @@ package com.revpay.db;
 
 import com.revpay.model.Transaction;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +17,12 @@ public class TransactionDao {
         """;
 
         try (PreparedStatement ps = con.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
-            ps.setLong(1, tx.getSenderId());
+            if (tx.getSenderId() == null) {
+                ps.setNull(1, Types.BIGINT);
+            } else {
+                ps.setLong(1, tx.getSenderId());
+            }
+
             ps.setLong(2, tx.getReceiverId());
             ps.setBigDecimal(3, tx.getAmount());
             ps.setString(4, tx.getType());

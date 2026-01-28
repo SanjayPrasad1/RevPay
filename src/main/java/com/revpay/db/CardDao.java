@@ -95,4 +95,32 @@ public class CardDao {
         }
     }
 
+    public Card findDefaultCard(long userId, Connection con) throws Exception {
+        String sql = """
+        SELECT * FROM cards
+        WHERE user_id = ? AND is_default = true
+        LIMIT 1
+    """;
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Card c = new Card();
+                    c.setId(rs.getLong("id"));
+                    c.setUserId(rs.getLong("user_id"));
+                    c.setCardHolderName(rs.getString("card_holder_name"));
+                    c.setEncryptedCardNumber(rs.getString("encrypted_card_number"));
+                    c.setEncryptedCvv(rs.getString("encrypted_cvv"));
+                    c.setExpiryMonth(rs.getInt("expiry_month"));
+                    c.setExpiryYear(rs.getInt("expiry_year"));
+                    c.setDefault(true);
+                    return c;
+                }
+                return null;
+            }
+        }
+    }
+
+
 }
