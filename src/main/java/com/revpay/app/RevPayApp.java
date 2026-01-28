@@ -1,6 +1,7 @@
 package com.revpay.app;
 
 import com.revpay.db.DBConnection;
+import com.revpay.model.MoneyRequest;
 import com.revpay.model.Transaction;
 import com.revpay.model.User;
 import com.revpay.model.Wallet;
@@ -17,6 +18,7 @@ public class RevPayApp {
     private static final AuthService authService = new AuthService();
     private static User loggedInUser = null;
     private static final WalletService walletService = new WalletService();
+    private static final MoneyRequestService moneyRequestService = new MoneyRequestService();
 
 
     public static void main(String[] args) {
@@ -91,8 +93,11 @@ public class RevPayApp {
             System.out.println("1. View Profile");
             System.out.println("2. View Balance");
             System.out.println("3. Send Money");
-            System.out.println("4. View Transaction");
-            System.out.println("5. Logout");
+            System.out.println("4. Request Money");
+            System.out.println("5. View Pending Requests");
+            System.out.println("6. Accept Money Request");
+            System.out.println("7. View Transaction");
+            System.out.println("8. Logout");
 
             int choice = InputUtil.readInt("Enter choice: ");
 
@@ -100,8 +105,11 @@ public class RevPayApp {
                 case 1 -> handleViewProfile();
                 case 2 -> handleViewBalance();
                 case 3 -> handleSendMoney();
-                case 4 -> handleViewTransactions();
-                case 5 -> {
+                case 4 -> handleRequestMoney();
+                case 5 -> handleViewPendingRequests();
+                case 6 -> handleAcceptRequest();
+                case 7 -> handleViewTransactions();
+                case 8 -> {
                     loggedInUser = null;
                     System.out.println("Logged out.");
                     return;
@@ -138,9 +146,9 @@ public class RevPayApp {
         BigDecimal amount = InputUtil.readBigDecimal("Amount: ");
         String note = InputUtil.readLine("Note (optional): ");
 
-        try {
+        try(Connection con = DBConnection.getConnection()) {
             MoneyTransferService mts = new MoneyTransferService();
-            mts.transferMoney(loggedInUser.getId(), to, amount, note);
+            mts.transferMoney(loggedInUser.getId(), to, amount, note, con);
             System.out.println("Transfer successful.");
         } catch (Exception e) {
             System.out.println("Transfer failed: " + e.getMessage());
@@ -178,6 +186,68 @@ public class RevPayApp {
 
         } catch (Exception e) {
             System.out.println("Failed to load transactions.");
+        }
+    }
+
+    private static void handleRequestMoney() {
+
+        try {
+            long requesteeId = InputUtil.readLong("Enter user id to request from: ");
+            BigDecimal amount = InputUtil.readBigDecimal("Enter amount: ");
+
+            MoneyRequestService moneyRequestService = new MoneyRequestService();
+            moneyRequestService.requestMoney(
+                    loggedInUser.getId(),
+                    requesteeId,
+                    amount
+            );
+
+            System.out.println("Money request sent successfully.");
+
+        } catch (Exception e) {
+            System.out.println("Failed to request money: " + e.getMessage());
+        }
+    }
+
+    private static void handleAcceptRequest() {
+
+        long requestId = InputUtil.readLong("Enter request ID to accept: ");
+
+        try {
+            moneyRequestService.acceptRequest(
+                    requestId,
+                    loggedInUser.getId()
+            );
+            System.out.println("Request accepted.");
+        } catch (Exception e) {
+            System.out.println("Failed: " + e.getMessage());
+        }
+    }
+
+    private static void handleViewPendingRequests() {
+
+        try {
+            List<MoneyRequest> list =
+                    moneyRequestService.viewPendingRequests(loggedInUser.getId());
+
+            if (list.isEmpty()) {
+                System.out.println("No pending money requests.");
+                return;
+            }
+
+            System.out.println("\n---- Pending Money Requests ----");
+
+            for (MoneyRequest r : list) {
+                System.out.println(
+                        "Request ID: " + r.getId() +
+                                " | From: " + r.getRequesterName() +
+                                " | Amount: " + r.getAmount() +
+                                " | Date: " + r.getCreatedAt()
+                );
+            }
+
+        } catch (Exception e) {
+            System.out.println("Failed to load requests: " + e.getMessage());
         }
     }
 

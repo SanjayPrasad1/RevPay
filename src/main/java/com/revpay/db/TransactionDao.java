@@ -11,7 +11,7 @@ import java.util.List;
 
 public class TransactionDao {
 
-    public void insert(Transaction tx, Connection con) throws Exception {
+    public long insert(Transaction tx, Connection con) throws Exception {
 
         String sql = """
             INSERT INTO transactions
@@ -19,7 +19,7 @@ public class TransactionDao {
             VALUES (?, ?, ?, ?, ?, ?, ?)
         """;
 
-        try (PreparedStatement ps = con.prepareStatement(sql)) {
+        try (PreparedStatement ps = con.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
             ps.setLong(1, tx.getSenderId());
             ps.setLong(2, tx.getReceiverId());
             ps.setBigDecimal(3, tx.getAmount());
@@ -29,6 +29,13 @@ public class TransactionDao {
             ps.setTimestamp(7, Timestamp.valueOf(tx.getCreatedAt()));
 
             ps.executeUpdate();
+
+            ResultSet rs = ps.getGeneratedKeys();
+            if (rs.next()){
+                return rs.getLong(1);
+            }else {
+                throw new RuntimeException("Failed to fetch transaction Id");
+            }
         }
     }
     public List<Transaction> findByUserId(long userId, Connection con) throws Exception {

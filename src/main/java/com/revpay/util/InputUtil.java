@@ -37,4 +37,15 @@ public class InputUtil {
             }
         }
     }
+    public static long readLong(String prompt) {
+        while (true) {
+            try {
+                System.out.print(prompt);
+                return Long.parseLong(scanner.nextLine().trim());
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a valid number.");
+            }
+        }
+    }
+
 }
