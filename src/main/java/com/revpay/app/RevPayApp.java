@@ -167,8 +167,8 @@ public class RevPayApp {
         TransactionService ts = new TransactionService();
 
         try {
-            List<Transaction> list =
-                    ts.getUserTransactions(loggedInUser.getId());
+            List<TransactionView> list =
+                    ts.getUserTransactionViews(loggedInUser.getId());
 
             if (list.isEmpty()) {
                 System.out.println("No transactions found.");
@@ -177,21 +177,16 @@ public class RevPayApp {
 
             System.out.println("\n---- Transactions ----");
 
-            for (Transaction t : list) {
-                String direction =
-                        t.getSenderId() == loggedInUser.getId()
-                                ? "SENT"
-                                : "RECEIVED";
-
+            for (TransactionView t : list) {
                 System.out.println(
-                        direction + " | " +
-                                t.getAmount() + " | " +
-                                t.getStatus() + " | " +
-                                t.getCreatedAt()
+                        t.getDisplayType() + " | " +
+                        t.getAmount() + " | " +
+                        t.getCreatedAt()
                 );
             }
 
         } catch (Exception e) {
+            e.printStackTrace();
             System.out.println("Failed to load transactions.");
         }
     }
@@ -385,10 +380,6 @@ public class RevPayApp {
             System.out.println("Failed: " + e.getMessage());
         }
     }
-
-//    public static User getLoggedInUser(){
-//        return loggedInUser;
-//    }
 
 
 }

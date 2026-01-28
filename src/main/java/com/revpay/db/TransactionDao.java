@@ -43,7 +43,7 @@ public class TransactionDao {
     public List<Transaction> findByUserId(long userId, Connection con) throws Exception {
 
         String sql = """
-        SELECT id, sender_id, receiver_id, amount, status, note, created_at
+        SELECT id, sender_id, receiver_id, amount, type, status, note, created_at
         FROM transactions
         WHERE sender_id = ? OR receiver_id = ?
         ORDER BY created_at DESC
@@ -59,9 +59,17 @@ public class TransactionDao {
                 while (rs.next()) {
                     Transaction t = new Transaction();
                     t.setId(rs.getLong("id"));
-                    t.setSenderId(rs.getLong("sender_id"));
-                    t.setReceiverId(rs.getLong("receiver_id"));
+
+                    Long senderId = rs.getObject("sender_id", Long.class);
+//                    t.setSenderId(rs.getLong("sender_id"));
+                    t.setSenderId(senderId);
+
+                    Long receiverId = rs.getObject("receiver_id", Long.class);
+                    t.setReceiverId(receiverId);
+//                    t.setReceiverId(rs.getLong("receiver_id"));
+
                     t.setAmount(rs.getBigDecimal("amount"));
+                    t.setType(rs.getString("type"));
                     t.setStatus(rs.getString("status"));
                     t.setNote(rs.getString("note"));
                     t.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
