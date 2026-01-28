@@ -96,7 +96,8 @@ public class RevPayApp {
             System.out.println("7. View Transaction");
             System.out.println("8. Manage Cards");
             System.out.println("9. Add Money to Wallet");
-            System.out.println("10. Logout");
+            System.out.println("10. WithDraw Money");
+            System.out.println("11. Logout");
 
             int choice = InputUtil.readInt("Enter choice: ");
 
@@ -110,7 +111,8 @@ public class RevPayApp {
                 case 7 -> handleViewTransactions();
                 case 8 -> handleCardMenu();
                 case 9 -> handleAddMoney();
-                case 10 -> {
+                case 10 -> handleWithdrawMoney();
+                case 11 -> {
                     loggedInUser = null;
                     System.out.println("Logged out.");
                     return;
@@ -357,5 +359,36 @@ public class RevPayApp {
             System.out.println("Failed: " + e.getMessage());
         }
     }
+
+    private static void handleWithdrawMoney() {
+
+        System.out.println("\n---- Withdraw Money ----");
+
+        BigDecimal amount = InputUtil.readBigDecimal("Amount to withdraw: ");
+        String note = InputUtil.readLine("Note (optional): ");
+
+        try (Connection con = DBConnection.getConnection()) {
+            con.setAutoCommit(false);
+
+            WalletService walletService = new WalletService();
+            walletService.withdrawMoney(
+                    loggedInUser,
+                    amount,
+                    note,
+                    con
+            );
+
+            con.commit();
+            System.out.println("Withdrawal successful.");
+
+        } catch (Exception e) {
+            System.out.println("Failed: " + e.getMessage());
+        }
+    }
+
+//    public static User getLoggedInUser(){
+//        return loggedInUser;
+//    }
+
 
 }
