@@ -1,9 +1,8 @@
 package com.revpay.service;
 
-import com.revpay.db.DBConnection;
-import com.revpay.db.InvoiceDao;
-import com.revpay.db.UserDao;
+import com.revpay.db.*;
 import com.revpay.model.Invoice;
+import com.revpay.model.Notification;
 import com.revpay.model.User;
 
 import java.math.BigDecimal;
@@ -46,7 +45,14 @@ public class InvoiceService {
         invoice.setStatus("SENT");
         invoice.setDueDate(dueDate);
 
-        return invoiceDao.create(invoice, con);
+        long invoiceId =  invoiceDao.create(invoice, con);
+
+        NotificationService notificationService = new NotificationService(new NotificationDaoImpl(con));
+
+        notificationService.notify(customerUserId,
+                "New invoice received. Amount ₹"+amount);
+        return invoiceId;
+
     }
 
     // PERSONAL ACTION
@@ -62,7 +68,7 @@ public class InvoiceService {
             throw new RuntimeException("Invoice not found");
 
         if (!"ACCEPTED".equals(invoice.getStatus()))
-            throw new RuntimeException("Invoice already paid");
+            throw new RuntimeException("Invoice not accepted yet");
 
         if (invoice.getCustomerUserId() != payerUserId)
             throw new RuntimeException("This invoice does not belong to you");
@@ -76,6 +82,9 @@ public class InvoiceService {
         );
 
         invoiceDao.markPaid(invoiceId, con);
+
+        NotificationService ns = new NotificationService(new NotificationDaoImpl(con));
+        ns.notify(invoice.getBusinessUserId(), "Invoice #"+ invoiceId + " paid");
     }
 
     public List<Invoice> getPendingInvoicesForCustomer(long customerId) throws Exception {
@@ -103,6 +112,8 @@ public class InvoiceService {
             invoiceDao.markAccepted(invoiceId, con);
 
             con.commit();
+            NotificationService ns = new NotificationService(new NotificationDaoImpl(con));
+            ns.notify(inv.getBusinessUserId(), "Invoice #" + invoiceId + " accepted");
         }
     }
 }

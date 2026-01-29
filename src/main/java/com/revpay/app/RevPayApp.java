@@ -2,12 +2,15 @@ package com.revpay.app;
 
 import com.revpay.db.DBConnection;
 import com.revpay.db.InvoiceDao;
+import com.revpay.db.NotificationDao;
+import com.revpay.db.NotificationDaoImpl;
 import com.revpay.model.*;
 import com.revpay.service.*;
 import com.revpay.util.InputUtil;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -181,6 +184,7 @@ public class RevPayApp {
             }
 
             System.out.println("6. Transactions");
+            System.out.println("7. Notifications");
             System.out.println("0. Logout");
 
             int choice = InputUtil.readInt("Enter choice: ");
@@ -195,6 +199,7 @@ public class RevPayApp {
                     else invalid();
                 }
                 case 6 -> handleViewTransactions();
+                case 7 -> showNotifications();
                 case 0 -> {
                     loggedInUser = null;
                     return;
@@ -896,6 +901,24 @@ public class RevPayApp {
             System.out.println("Failed: " + e.getMessage());
         }
     }
+    private static void showNotifications() {
+        try(Connection con = DBConnection.getConnection()){
+            NotificationService ns = new NotificationService(new NotificationDaoImpl(con));
 
+            List<Notification> list = ns.getUnread(loggedInUser.getId());
+
+            if (list.isEmpty()){
+                System.out.println("No new notifications");
+                return;
+            }
+
+            for (Notification n : list){
+                System.out.println(n.getId()+" -> "+n.getMessage());
+                ns.markRead(n.getId());
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 }
