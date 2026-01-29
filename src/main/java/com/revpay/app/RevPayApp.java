@@ -122,7 +122,7 @@ public class RevPayApp {
     }
 
 
-    private static void handleLogin(){
+    /*private static void handleLogin(){
         System.out.println("\n--------Login--------");
 
         String input = InputUtil.readLine("Email or Phone: ");
@@ -150,8 +150,248 @@ public class RevPayApp {
             System.out.println("Login failed: "+e.getMessage());
         }
     }
+*/
+    private static void handleLogin() {
 
-    private static void showUserMenu() {
+        String input = InputUtil.readLine("Email or Phone: ");
+        String password = InputUtil.readLine("Password: ");
+
+        try {
+            User user = authService.login(input, password);
+            authService.verifyPin(user.getId(), InputUtil.readLine("Enter PIN: "));
+            loggedInUser = user;
+
+            showMainMenu();   // 👈 ONLY THIS
+
+        } catch (Exception e) {
+            System.out.println("Login failed: " + e.getMessage());
+        }
+    }
+    private static void showMainMenu() throws Exception {
+
+        while (true) {
+            System.out.println("\n==== Main Menu ====");
+            System.out.println("1. Wallet");
+            System.out.println("2. Payments");
+            System.out.println("3. Cards");
+            System.out.println("4. Invoices");
+
+            if (isBusiness()) {
+                System.out.println("5. Loans");
+            }
+
+            System.out.println("6. Transactions");
+            System.out.println("0. Logout");
+
+            int choice = InputUtil.readInt("Enter choice: ");
+
+            switch (choice) {
+                case 1 -> showWalletMenu();
+                case 2 -> showPaymentsMenu();
+                case 3 -> handleCardMenu();
+                case 4 -> showInvoiceMenu();
+                case 5 -> {
+                    if (isBusiness()) showLoanMenu();
+                    else invalid();
+                }
+                case 6 -> handleViewTransactions();
+                case 0 -> {
+                    loggedInUser = null;
+                    return;
+                }
+                default -> invalid();
+            }
+        }
+    }
+
+    private static void showWalletMenu() {
+        while (true) {
+            System.out.println("\n---- Wallet ----");
+            System.out.println("1. View Balance");
+            System.out.println("2. Add Money");
+            System.out.println("3. Withdraw Money");
+            System.out.println("0. Back");
+
+            int choice = InputUtil.readInt("Choice: ");
+
+            switch (choice) {
+                case 1 -> handleViewBalance();
+                case 2 -> handleAddMoney();
+                case 3 -> handleWithdrawMoney();
+                case 0 -> { return; }
+                default -> invalid();
+            }
+        }
+    }
+    private static void showPaymentsMenu() {
+        while (true) {
+            System.out.println("\n---- Payments ----");
+            System.out.println("1. Send Money");
+            System.out.println("2. Request Money");
+            System.out.println("3. View Pending Requests");
+            System.out.println("4. Accept Request");
+            System.out.println("0. Back");
+
+            int choice = InputUtil.readInt("Choice: ");
+
+            switch (choice) {
+                case 1 -> handleSendMoney();
+                case 2 -> handleRequestMoney();
+                case 3 -> handleViewPendingRequests();
+                case 4 -> handleAcceptRequest();
+                case 0 -> { return; }
+                default -> invalid();
+            }
+        }
+    }
+    private static void showInvoiceMenu() throws Exception {
+
+        while (true) {
+            System.out.println("\n---- Invoices ----");
+
+            if (isBusiness()) {
+                System.out.println("1. Create Invoice");
+                System.out.println("2. View My Invoices");
+            } else {
+                System.out.println("1. View Pending Invoices");
+                System.out.println("2. Accept Invoice");
+                System.out.println("3. Pay Invoice");
+            }
+
+            System.out.println("0. Back");
+            int choice = InputUtil.readInt("Choice: ");
+
+            if (isBusiness()) {
+                switch (choice) {
+                    case 1 -> handleCreateInvoice();
+                    case 2 -> handleViewBusinessInvoices();
+                    case 0 -> { return; }
+                    default -> invalid();
+                }
+            } else {
+                switch (choice) {
+                    case 1 -> handleViewPendingInvoices();
+                    case 2 -> handleAcceptInvoice();
+                    case 3 -> handlePayInvoice();
+                    case 0 -> { return; }
+                    default -> invalid();
+                }
+            }
+        }
+    }
+    private static void showLoanMenu() {
+
+        while (true) {
+            System.out.println("\n---- Business Loans ----");
+            System.out.println("1. Apply for Loan");
+            System.out.println("2. View My Loans");
+            System.out.println("3. Pay EMI");
+            System.out.println("0. Back");
+
+            int choice = InputUtil.readInt("Choice: ");
+
+            switch (choice) {
+                case 1 -> handleApplyLoan();
+                case 2 -> handleViewLoans();
+                case 3 -> handlePayLoanEmi();
+                case 0 -> { return; }
+                default -> invalid();
+            }
+        }
+    }
+
+
+
+
+    /* private static void showMainMenu() throws Exception {
+
+        while (true) {
+            System.out.println("\n==== Main Menu ====");
+            System.out.println("1. View Profile");
+            System.out.println("2. View Balance");
+            System.out.println("3. Send Money");
+            System.out.println("4. Request Money");
+            System.out.println("5. View Pending Requests");
+            System.out.println("6. Accept Money Request");
+            System.out.println("7. View Transactions");
+            System.out.println("8. Manage Cards");
+            System.out.println("9. Add Money");
+            System.out.println("10. Withdraw Money");
+            System.out.println("11. View Pending Invoices");
+            System.out.println("12. Accept Invoice");
+
+            if ("BUSINESS".equalsIgnoreCase(loggedInUser.getUserType())) {
+                System.out.println("13. Create Invoice");
+                System.out.println("14. View My Invoices");
+                System.out.println("15. Apply for Loan");
+                System.out.println("16. View Loans");
+                System.out.println("17. Pay Loan EMI");
+            }
+
+            System.out.println("0. Logout");
+
+            int choice = InputUtil.readInt("Enter choice: ");
+
+            switch (choice) {
+
+                case 1 -> handleViewProfile();
+                case 2 -> handleViewBalance();
+                case 3 -> handleSendMoney();
+                case 4 -> handleRequestMoney();
+                case 5 -> handleViewPendingRequests();
+                case 6 -> handleAcceptRequest();
+                case 7 -> handleViewTransactions();
+                case 8 -> handleCardMenu();
+                case 9 -> handleAddMoney();
+                case 10 -> handleWithdrawMoney();
+                case 11 -> handleViewPendingInvoices();
+                case 12 -> handleAcceptInvoice();
+
+                case 13 -> {
+                    if (isBusiness()) handleCreateInvoice();
+                    else invalid();
+                }
+
+                case 14 -> {
+                    if (isBusiness()) handleViewBusinessInvoices();
+                    else invalid();
+                }
+
+                case 15 -> {
+                    if (isBusiness()) handleApplyLoan();
+                    else invalid();
+                }
+
+                case 16 -> {
+                    if (isBusiness()) handleViewLoans();
+                    else invalid();
+                }
+
+                case 17 -> {
+                    if (isBusiness()) handlePayLoanEmi();
+                    else invalid();
+                }
+
+                case 0 -> {
+                    loggedInUser = null;
+                    System.out.println("Logged out.");
+                    return;
+                }
+
+                default -> System.out.println("Invalid option.");
+            }
+        }
+    }*/
+    private static boolean isBusiness() {
+        return "BUSINESS".equalsIgnoreCase(loggedInUser.getUserType());
+    }
+
+    private static void invalid() {
+        System.out.println("Invalid option.");
+    }
+
+
+    /*private static void showUserMenu() throws Exception {
 
         while (true) {
             System.out.println("\n==== User Menu ====");
@@ -166,8 +406,9 @@ public class RevPayApp {
             System.out.println("9. Add Money to Wallet");
             System.out.println("10. WithDraw Money");
             System.out.println("11. View Pending Invoices");
-            System.out.println("12. Accept Invoice");
-            System.out.println("13. Logout");
+            System.out.println("12. Pay Invoice");
+            System.out.println("13. Accept Invoice");
+            System.out.println("14. Logout");
 
             int choice = InputUtil.readInt("Enter choice: ");
 
@@ -183,8 +424,9 @@ public class RevPayApp {
                 case 9 -> handleAddMoney();
                 case 10 -> handleWithdrawMoney();
                 case 11 -> handleViewPendingInvoices();
-                case 12 -> handleAcceptInvoice();
-                case 13 -> {
+                case 12 -> handlePayInvoice();
+                case 13 -> handleAcceptInvoice();
+                case 14 -> {
                     loggedInUser = null;
                     System.out.println("Logged out.");
                     return;
@@ -193,7 +435,7 @@ public class RevPayApp {
             }
         }
     }
-
+*/
     private static void handleViewProfile() {
 
         System.out.println("\n---- Profile ----");
@@ -457,7 +699,10 @@ public class RevPayApp {
             System.out.println("\n==== Business Menu ====");
             System.out.println("1. Create Invoice");
             System.out.println("2. View My Invoices");
-            System.out.println("3. Back");
+            System.out.println("3. Apply for Loan");
+            System.out.println("4. View Active Loans");
+            System.out.println("5. Pay Loan EMI");
+            System.out.println("6. Back");
 
             int choice = InputUtil.readInt("Enter choice: ");
 
@@ -470,6 +715,15 @@ public class RevPayApp {
                         handleViewBusinessInvoices();
                         break;
                     case 3:
+                        handleApplyLoan();
+                        break;
+                    case 4:
+                        handleViewLoans();
+                        break;
+                    case 5:
+                        handlePayLoanEmi();
+                        break;
+                    case 6:
                         return;
                     default:
                         System.out.println("Invalid option");
@@ -601,5 +855,47 @@ public class RevPayApp {
             System.out.println("Failed: " + e.getMessage());
         }
     }
+
+    private static void handleApplyLoan() {
+        BigDecimal amount = InputUtil.readBigDecimal("Loan Amount: ");
+        int tenure = InputUtil.readInt("Tenure (months): ");
+
+        try {
+            new LoanService().applyLoan(loggedInUser.getId(), amount, tenure);
+            System.out.println("Loan approved and credited.");
+        } catch (Exception e) {
+            System.out.println("Failed: " + e.getMessage());
+        }
+    }
+
+    private static void handleViewLoans() {
+        try {
+            List<Loan> loans =
+                    new LoanService().getActiveLoans(loggedInUser.getId());
+
+            for (Loan l : loans) {
+                System.out.println(
+                        "Loan ID: " + l.getId() +
+                                " | EMI: " + l.getMonthlyEmi() +
+                                " | Outstanding: " + l.getOutstandingAmount()
+                );
+            }
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    private static void handlePayLoanEmi() {
+        long loanId = InputUtil.readLong("Loan ID: ");
+        BigDecimal amount = InputUtil.readBigDecimal("EMI Amount: ");
+
+        try {
+            new LoanService().payEmi(loanId, loggedInUser.getId(), amount);
+            System.out.println("EMI paid successfully.");
+        } catch (Exception e) {
+            System.out.println("Failed: " + e.getMessage());
+        }
+    }
+
 
 }

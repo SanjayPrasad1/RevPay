@@ -90,6 +90,69 @@ public class WalletService {
 
         transactionDao.insert(tx, con);
     }
+    // SYSTEM credits money to user (loan, refunds, etc.)
+    public void creditWalletInternal(
+            long userId,
+            BigDecimal amount,
+            String note,
+            Connection con
+    ) throws Exception {
 
+        if (amount.compareTo(BigDecimal.ZERO) <= 0)
+            throw new RuntimeException("Amount must be positive");
+
+        Wallet wallet = walletDao.findByUserIdForUpdate(userId, con);
+
+        walletDao.updateBalance(
+                wallet.getId(),
+                wallet.getBalance().add(amount),
+                con
+        );
+
+        Transaction tx = new Transaction();
+        tx.setSenderId(SYSTEM_USER_ID); // SYSTEM
+        tx.setReceiverId(userId);
+        tx.setAmount(amount);
+        tx.setType("LOAN_CREDIT");
+        tx.setStatus("SUCCESS");
+        tx.setNote(note);
+        tx.setCreatedAt(LocalDateTime.now());
+
+        transactionDao.insert(tx, con);
+    }
+
+    // SYSTEM debits money from user (EMI, penalties, etc.)
+    public void debitWalletInternal(
+            long userId,
+            BigDecimal amount,
+            String note,
+            Connection con
+    ) throws Exception {
+
+        if (amount.compareTo(BigDecimal.ZERO) <= 0)
+            throw new RuntimeException("Amount must be positive");
+
+        Wallet wallet = walletDao.findByUserIdForUpdate(userId, con);
+
+        if (wallet.getBalance().compareTo(amount) < 0)
+            throw new RuntimeException("Insufficient balance");
+
+        walletDao.updateBalance(
+                wallet.getId(),
+                wallet.getBalance().subtract(amount),
+                con
+        );
+
+        Transaction tx = new Transaction();
+        tx.setSenderId(userId);
+        tx.setReceiverId(SYSTEM_USER_ID);
+        tx.setAmount(amount);
+        tx.setType("LOAN_EMI");
+        tx.setStatus("SUCCESS");
+        tx.setNote(note);
+        tx.setCreatedAt(LocalDateTime.now());
+
+        transactionDao.insert(tx, con);
+    }
 
 }
