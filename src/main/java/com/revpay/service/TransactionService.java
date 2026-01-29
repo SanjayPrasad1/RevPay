@@ -54,7 +54,7 @@ public List<TransactionView> getUserTransactionViews(long userId) throws Excepti
                     break;
 
                 case "REQUEST":
-                    view.setDisplayType("REQUEST");
+                    view.setDisplayType("INVOICE");
                     break;
 
                 default:
