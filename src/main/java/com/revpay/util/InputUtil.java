@@ -1,6 +1,7 @@
 package com.revpay.util;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Scanner;
 
 public class InputUtil {
@@ -47,5 +48,17 @@ public class InputUtil {
             }
         }
     }
+
+    public static LocalDate readDate(String prompt) {
+        while (true) {
+            try {
+                System.out.print(prompt);
+                return LocalDate.parse(scanner.nextLine().trim());
+            } catch (Exception e) {
+                System.out.println("Invalid date format. Use YYYY-MM-DD");
+            }
+        }
+    }
+
 
 }

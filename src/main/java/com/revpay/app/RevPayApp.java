@@ -1,12 +1,14 @@
 package com.revpay.app;
 
 import com.revpay.db.DBConnection;
+import com.revpay.db.InvoiceDao;
 import com.revpay.model.*;
 import com.revpay.service.*;
 import com.revpay.util.InputUtil;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.time.LocalDate;
 import java.util.List;
 
 public class RevPayApp {
@@ -17,6 +19,8 @@ public class RevPayApp {
     private static final WalletService walletService = new WalletService();
     private static final MoneyRequestService moneyRequestService = new MoneyRequestService();
     private static final CardService cardService = new CardService();
+    private static final InvoiceDao invoiceDao = new InvoiceDao();
+    private static final InvoiceService invoiceService = new InvoiceService();
 
     public static void main(String[] args) {
 
@@ -40,7 +44,7 @@ public class RevPayApp {
         }
     }
 
-    private static void handleRegister() {
+    /*private static void handleRegister() {
 
         System.out.println("\n---- Register ----");
 
@@ -57,7 +61,66 @@ public class RevPayApp {
         } catch (Exception e) {
             System.out.println("Registration failed: " + e.getMessage());
         }
+    }*/
+    private static void handleRegister() {
+
+        System.out.println("\n---- Register ----");
+
+        String accountType = InputUtil.readLine("Account Type (PERSONAL / BUSINESS): ").toUpperCase();
+
+        try {
+            if ("PERSONAL".equals(accountType)) {
+
+                String fullName = InputUtil.readLine("Full name: ");
+                String email = InputUtil.readLine("Email: ");
+                String phone = InputUtil.readLine("Phone: ");
+                String password = InputUtil.readLine("Password: ");
+                String pin = InputUtil.readLine("PIN: ");
+
+                userService.registerPersonal(
+                        fullName,
+                        email,
+                        phone,
+                        password,
+                        pin
+                );
+
+                System.out.println("Personal account registered successfully.");
+
+            } else if ("BUSINESS".equals(accountType)) {
+
+                String businessName = InputUtil.readLine("Business Name: ");
+                String email = InputUtil.readLine("Email: ");
+                String phone = InputUtil.readLine("Phone: ");
+                String password = InputUtil.readLine("Password: ");
+                String pin = InputUtil.readLine("PIN: ");
+
+                String businessType = InputUtil.readLine("Business Type: ");
+                String taxId = InputUtil.readLine("Tax ID: ");
+                String address = InputUtil.readLine("Business Address: ");
+
+                userService.registerBusiness(
+                        businessName,
+                        email,
+                        phone,
+                        password,
+                        pin,
+                        businessType,
+                        taxId,
+                        address
+                );
+
+                System.out.println("Business account registered successfully.");
+
+            } else {
+                System.out.println("Invalid account type.");
+            }
+
+        } catch (Exception e) {
+            System.out.println("Registration failed: " + e.getMessage());
+        }
     }
+
 
     private static void handleLogin(){
         System.out.println("\n--------Login--------");
@@ -77,7 +140,12 @@ public class RevPayApp {
             System.out.println("Access granted.");
             System.out.println("Welcome "+user.getFullName());
 
-            showUserMenu();
+//            showUserMenu();
+            if ("BUSINESS".equalsIgnoreCase(user.getUserType())){
+                showBusinessMenu();
+            }else {
+                showUserMenu();
+            }
         } catch (Exception e) {
             System.out.println("Login failed: "+e.getMessage());
         }
@@ -380,6 +448,121 @@ public class RevPayApp {
             System.out.println("Failed: " + e.getMessage());
         }
     }
+    private static void showBusinessMenu() {
+        while (true) {
+            System.out.println("\n==== Business Menu ====");
+            System.out.println("1. Create Invoice");
+            System.out.println("2. View My Invoices");
+            System.out.println("3. Back");
+
+            int choice = InputUtil.readInt("Enter choice: ");
+
+            try {
+                switch (choice) {
+                    case 1:
+                        handleCreateInvoice();
+                        break;
+                    case 2:
+                        handleViewBusinessInvoices();
+                        break;
+                    case 3:
+                        return;
+                    default:
+                        System.out.println("Invalid option");
+                }
+            } catch (Exception e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+        }
+    }
+
+    private static void handleCreateInvoice() throws Exception {
+
+        long customerId = InputUtil.readLong("Enter customer user ID: ");
+        BigDecimal amount = InputUtil.readBigDecimal("Total amount: ");
+        LocalDate dueDate = InputUtil.readDate("Due date (YYYY-MM-DD): ");
+
+        try (Connection con = DBConnection.getConnection()) {
+            con.setAutoCommit(false);
+
+            invoiceService.createInvoice(
+                    loggedInUser.getId(),
+                    customerId,
+                    amount,
+                    dueDate,
+                    con
+            );
+
+            con.commit();
+            System.out.println("Invoice created successfully");
+        }
+    }
+
+    private static void handleViewBusinessInvoices() throws Exception {
+
+        try (Connection con = DBConnection.getConnection()) {
+            List<Invoice> invoices =
+                    invoiceDao.findByBusinessUserId(loggedInUser.getId(), con);
+
+            if (invoices.isEmpty()) {
+                System.out.println("No invoices found");
+                return;
+            }
+
+            for (Invoice i : invoices) {
+                System.out.println(
+                        "ID: " + i.getId() +
+                                " | Customer: " + i.getCustomerUserId() +
+                                " | Amount: " + i.getTotalAmount() +
+                                " | Status: " + i.getStatus() +
+                                " | Due: " + i.getDueDate()
+                );
+            }
+        }
+    }
+
+    private static void handleViewMyInvoices() throws Exception {
+
+        try (Connection con = DBConnection.getConnection()) {
+            List<Invoice> invoices =
+                    invoiceDao.findUnpaidByCustomerId(loggedInUser.getId(), con);
+
+            if (invoices.isEmpty()) {
+                System.out.println("No unpaid invoices");
+                return;
+            }
+
+            for (Invoice i : invoices) {
+                System.out.println(
+                        "Invoice ID: " + i.getId() +
+                                " | Business: " + i.getBusinessUserId() +
+                                " | Amount: " + i.getTotalAmount() +
+                                " | Due: " + i.getDueDate()
+                );
+            }
+        }
+    }
+
+    private static void handlePayInvoice() throws Exception {
+
+        long invoiceId = InputUtil.readLong("Enter Invoice ID to pay: ");
+
+        try (Connection con = DBConnection.getConnection()) {
+            con.setAutoCommit(false);
+
+            invoiceService.payInvoice(
+                    invoiceId,
+                    loggedInUser.getId(),
+                    con
+            );
+
+            con.commit();
+            System.out.println("Invoice paid successfully");
+        }
+    }
+
+
+
 
 
 }
