@@ -165,7 +165,9 @@ public class RevPayApp {
             System.out.println("8. Manage Cards");
             System.out.println("9. Add Money to Wallet");
             System.out.println("10. WithDraw Money");
-            System.out.println("11. Logout");
+            System.out.println("11. View Pending Invoices");
+            System.out.println("12. Accept Invoice");
+            System.out.println("13. Logout");
 
             int choice = InputUtil.readInt("Enter choice: ");
 
@@ -180,7 +182,9 @@ public class RevPayApp {
                 case 8 -> handleCardMenu();
                 case 9 -> handleAddMoney();
                 case 10 -> handleWithdrawMoney();
-                case 11 -> {
+                case 11 -> handleViewPendingInvoices();
+                case 12 -> handleAcceptInvoice();
+                case 13 -> {
                     loggedInUser = null;
                     System.out.println("Logged out.");
                     return;
@@ -561,8 +565,41 @@ public class RevPayApp {
         }
     }
 
+    private static void handleViewPendingInvoices() {
+        try {
+            InvoiceService service = new InvoiceService();
+            List<Invoice> list = service.getPendingInvoicesForCustomer(loggedInUser.getId());
 
+            if (list.isEmpty()) {
+                System.out.println("No pending invoices.");
+                return;
+            }
 
+            for (Invoice i : list) {
+                System.out.println(
+                        "Invoice ID: " + i.getId() +
+                                " | Business: " + i.getBusinessUserId() +
+                                " | Amount: " + i.getTotalAmount() +
+                                " | Due: " + i.getDueDate()
+                );
+            }
 
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    private static void handleAcceptInvoice() {
+        long invoiceId = InputUtil.readLong("Enter Invoice ID to accept: ");
+
+        try {
+            InvoiceService service = new InvoiceService();
+            service.acceptInvoice(invoiceId, loggedInUser.getId());
+            System.out.println("Invoice accepted successfully.");
+
+        } catch (Exception e) {
+            System.out.println("Failed: " + e.getMessage());
+        }
+    }
 
 }

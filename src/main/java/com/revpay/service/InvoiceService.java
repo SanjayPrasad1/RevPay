@@ -1,5 +1,6 @@
 package com.revpay.service;
 
+import com.revpay.db.DBConnection;
 import com.revpay.db.InvoiceDao;
 import com.revpay.db.UserDao;
 import com.revpay.model.Invoice;
@@ -8,6 +9,8 @@ import com.revpay.model.User;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.time.LocalDate;
+import java.util.List;
+
 public class InvoiceService {
 
     private final InvoiceDao invoiceDao = new InvoiceDao();
@@ -40,7 +43,7 @@ public class InvoiceService {
         invoice.setBusinessUserId(businessUserId);
         invoice.setCustomerUserId(customerUserId);
         invoice.setTotalAmount(amount);
-        invoice.setStatus("UNPAID");
+        invoice.setStatus("SENT");
         invoice.setDueDate(dueDate);
 
         return invoiceDao.create(invoice, con);
@@ -58,7 +61,7 @@ public class InvoiceService {
         if (invoice == null)
             throw new RuntimeException("Invoice not found");
 
-        if (!"UNPAID".equals(invoice.getStatus()))
+        if (!"ACCEPTED".equals(invoice.getStatus()))
             throw new RuntimeException("Invoice already paid");
 
         if (invoice.getCustomerUserId() != payerUserId)
@@ -73,5 +76,33 @@ public class InvoiceService {
         );
 
         invoiceDao.markPaid(invoiceId, con);
+    }
+
+    public List<Invoice> getPendingInvoicesForCustomer(long customerId) throws Exception {
+        try (Connection con = DBConnection.getConnection()) {
+            return invoiceDao.findPendingByCustomer(customerId, con);
+        }
+    }
+
+    public void acceptInvoice(long invoiceId, long customerId) throws Exception {
+
+        try (Connection con = DBConnection.getConnection()) {
+            con.setAutoCommit(false);
+
+            Invoice inv = invoiceDao.findById(invoiceId, con);
+
+            if (inv == null)
+                throw new Exception("Invoice not found");
+
+            if (inv.getCustomerUserId() != customerId)
+                throw new Exception("Unauthorized");
+
+            if (!"SENT".equals(inv.getStatus()))
+                throw new Exception("Invoice cannot be accepted");
+
+            invoiceDao.markAccepted(invoiceId, con);
+
+            con.commit();
+        }
     }
 }

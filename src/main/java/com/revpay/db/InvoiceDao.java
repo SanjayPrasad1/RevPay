@@ -28,7 +28,7 @@ public class InvoiceDao {
         }
     }
 
-    public Invoice findById(long invoiceId, Connection con) throws Exception {
+    /*public Invoice findById(long invoiceId, Connection con) throws Exception {
 
         String sql = "SELECT * FROM invoices WHERE id = ?";
 
@@ -48,6 +48,30 @@ public class InvoiceDao {
             i.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
 
             return i;
+        }
+    }*/
+    public Invoice findById(long invoiceId, Connection con) throws Exception {
+        String sql = "SELECT * FROM invoices WHERE id = ?";
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, invoiceId);
+            ResultSet rs = ps.executeQuery();
+
+            if (!rs.next()) return null;
+
+            Invoice inv = new Invoice();
+            inv.setId(rs.getLong("id"));
+            inv.setBusinessUserId(rs.getLong("business_user_id"));
+            inv.setCustomerUserId(rs.getLong("customer_user_id"));
+            inv.setTotalAmount(rs.getBigDecimal("total_amount"));
+            inv.setStatus(rs.getString("status"));
+            inv.setDueDate(rs.getDate("due_date").toLocalDate());
+            inv.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+
+            Timestamp acc = rs.getTimestamp("accepted_at");
+            if (acc != null) inv.setAcceptedAt(acc.toLocalDateTime());
+
+            return inv;
         }
     }
 
@@ -109,7 +133,7 @@ public class InvoiceDao {
         String sql = """
         SELECT * FROM invoices
         WHERE customer_user_id = ?
-          AND status = 'UNPAID'
+          AND status = 'SENT'
         ORDER BY due_date
     """;
 
@@ -137,7 +161,48 @@ public class InvoiceDao {
         return i;
     }
 
+    public void markAccepted(long invoiceId, Connection con) throws Exception {
+        String sql = """
+            UPDATE invoices
+            SET status = 'ACCEPTED', accepted_at = NOW()
+            WHERE id = ? AND status = 'SENT'
+        """;
 
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, invoiceId);
+            int updated = ps.executeUpdate();
+            if (updated == 0)
+                throw new Exception("Invoice not in SENT state");
+        }
+    }
 
+    public List<Invoice> findPendingByCustomer(long customerId, Connection con) throws Exception {
+        String sql = """
+            SELECT * FROM invoices
+            WHERE customer_user_id = ?
+            AND status = 'SENT'
+        """;
+
+        List<Invoice> list = new ArrayList<>();
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setLong(1, customerId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Invoice inv = new Invoice();
+                inv.setId(rs.getLong("id"));
+                inv.setBusinessUserId(rs.getLong("business_user_id"));
+                inv.setCustomerUserId(rs.getLong("customer_user_id"));
+                inv.setTotalAmount(rs.getBigDecimal("total_amount"));
+                inv.setStatus(rs.getString("status"));
+                inv.setDueDate(rs.getDate("due_date").toLocalDate());
+                inv.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                list.add(inv);
+            }
+        }
+        return list;
+    }
 }
+
 

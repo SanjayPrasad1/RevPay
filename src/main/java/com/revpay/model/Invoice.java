@@ -12,6 +12,14 @@ public class Invoice {
     private String status; // UNPAID, PAID, OVERDUE
     private LocalDate dueDate;
     private LocalDateTime createdAt;
+    private LocalDateTime acceptedAt;
+    public LocalDateTime getAcceptedAt() {
+        return acceptedAt;
+    }
+
+    public void setAcceptedAt(LocalDateTime acceptedAt) {
+        this.acceptedAt = acceptedAt;
+    }
 
     public long getId() { return id; }
     public void setId(long id) { this.id = id; }
