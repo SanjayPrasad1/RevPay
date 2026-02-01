@@ -71,3 +71,18 @@ Refer to **ERD.png** for complete schema.
 ### Steps
 1. Clone repository
 git clone https://github.com/<your-username>/revpay.git
+
+2. Create database in PostgreSQL
+CREATE DATABASE revpay;
+
+3. Update DB creadentials in
+DBConnection.java
+
+4. Build Project
+mvn clean install
+
+5. Run Application
+Run RevPayApp.java 
+ 
+   
+
