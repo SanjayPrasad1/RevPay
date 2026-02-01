@@ -1,8 +1,8 @@
 package com.revpay.service;
 
 import com.revpay.db.DBConnection;
-import com.revpay.db.UserDao;
-import com.revpay.db.WalletDao;
+import com.revpay.dao.UserDao;
+import com.revpay.dao.WalletDao;
 import com.revpay.model.User;
 import com.revpay.model.Wallet;
 import com.revpay.util.PasswordUtil;
@@ -28,9 +28,10 @@ public class AuthService {
             throw new RuntimeException("Account locked. Try again later.");
         }
 
-        String hashedInput = PasswordUtil.hash(password);
-
-        if (!hashedInput.equals(user.getPasswordHash())) {
+//        String hashedInput = PasswordUtil.hash(password);
+//
+//        if (!hashedInput.equals(user.getPasswordHash())) {
+        if(!PasswordUtil.verify(password, user.getPasswordHash())){
 
             int newAttempts = user.getFailedAttempts()+1;
             LocalDateTime lockUntil = null;
@@ -66,9 +67,10 @@ public class AuthService {
             throw new RuntimeException("PIN locked. Try again later.");
         }
 
-        String hashedPin = PasswordUtil.hash(pin);
-
-        if (!hashedPin.equals(user.getPinHash())) {
+//        String hashedPin = PasswordUtil.hash(pin);
+//
+//        if (!hashedPin.equals(user.getPinHash())) {
+        if (!PasswordUtil.verify(pin, user.getPinHash())){
 
             int newAttempts = user.getPinFailedAttempts() + 1;
             LocalDateTime lockUntil = null;

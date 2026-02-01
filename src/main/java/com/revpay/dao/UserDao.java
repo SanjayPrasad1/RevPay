@@ -1,5 +1,6 @@
-package com.revpay.db;
+package com.revpay.dao;
 
+import com.revpay.db.DBConnection;
 import com.revpay.model.User;
 
 import java.sql.*;

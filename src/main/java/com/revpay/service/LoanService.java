@@ -1,8 +1,8 @@
 package com.revpay.service;
 
 import com.revpay.db.DBConnection;
-import com.revpay.db.LoanDao;
-import com.revpay.db.UserDao;
+import com.revpay.dao.LoanDao;
+import com.revpay.dao.UserDao;
 import com.revpay.model.Loan;
 import com.revpay.model.User;
 

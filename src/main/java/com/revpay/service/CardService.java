@@ -1,6 +1,6 @@
 package com.revpay.service;
 
-import com.revpay.db.CardDao;
+import com.revpay.dao.CardDao;
 import com.revpay.model.Card;
 import com.revpay.util.EncryptionUtil;
 

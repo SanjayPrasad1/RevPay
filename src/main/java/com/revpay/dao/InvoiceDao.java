@@ -1,4 +1,4 @@
-package com.revpay.db;
+package com.revpay.dao;
 
 import com.revpay.model.Invoice;
 

@@ -1,6 +1,6 @@
 package com.revpay.service;
 
-import com.revpay.db.NotificationDao;
+import com.revpay.dao.NotificationDao;
 import com.revpay.model.Notification;
 
 import java.util.List;

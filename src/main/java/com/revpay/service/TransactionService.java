@@ -1,7 +1,7 @@
 package com.revpay.service;
 
 import com.revpay.db.DBConnection;
-import com.revpay.db.TransactionDao;
+import com.revpay.dao.TransactionDao;
 import com.revpay.model.Transaction;
 import com.revpay.model.TransactionView;
 

@@ -1,8 +1,8 @@
 package com.revpay.service;
 
-import com.revpay.db.*;
+import com.revpay.dao.*;
+import com.revpay.db.DBConnection;
 import com.revpay.model.Invoice;
-import com.revpay.model.Notification;
 import com.revpay.model.User;
 
 import java.math.BigDecimal;

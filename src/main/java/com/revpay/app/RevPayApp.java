@@ -1,9 +1,8 @@
 package com.revpay.app;
 
 import com.revpay.db.DBConnection;
-import com.revpay.db.InvoiceDao;
-import com.revpay.db.NotificationDao;
-import com.revpay.db.NotificationDaoImpl;
+import com.revpay.dao.InvoiceDao;
+import com.revpay.dao.NotificationDaoImpl;
 import com.revpay.model.*;
 import com.revpay.service.*;
 import com.revpay.util.InputUtil;
@@ -164,7 +163,7 @@ public class RevPayApp {
             authService.verifyPin(user.getId(), InputUtil.readLine("Enter PIN: "));
             loggedInUser = user;
 
-            showMainMenu();   // 👈 ONLY THIS
+            showMainMenu();
 
         } catch (Exception e) {
             System.out.println("Login failed: " + e.getMessage());

@@ -1,9 +1,8 @@
 package com.revpay.service;
 
-import com.revpay.db.DBConnection;
-import com.revpay.db.TransactionDao;
-import com.revpay.db.UserDao;
-import com.revpay.db.WalletDao;
+import com.revpay.dao.TransactionDao;
+import com.revpay.dao.UserDao;
+import com.revpay.dao.WalletDao;
 import com.revpay.model.Transaction;
 import com.revpay.model.User;
 import com.revpay.model.Wallet;
